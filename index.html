@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <!-- Обязательные метатеги -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="author" content="https://anteyku.com/">
+		
+    <!-- Bootstrap CSS -->
+    <!--
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    -->
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap.min.css" integrity="sha512-CpIKUSyh9QX2+zSdfGP+eWLx23C8Dj9/XmHjZY2uDtfkdLGo0uY12jgcnkX9vXOgYajEKb/jiw67EYm+kBf+6g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style_1.css">
+
+    <title>Игра StarShip войны</title>
+    <meta name="description" content="Уничтожать летящие астероиды и поднимать левел, соревноваться с друзьями">
+
+    <!-- Иконки Materialize.css -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link rel="shortcut icon" href="game-control.png" type="image/x-icon">
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/bf58a97d51.js" crossorigin="anonymous"></script>
+
+  </head>
+  <body id="lol">
+    
+
+
+   
+        <canvas width="1920" height="500" id="canvas" ></canvas>
+        <div class="skills">
+          <div class="skills__count">Счет - <span id="count">0</span> </div>
+          <div class="skills__lvl">Уровень - <span id="lvl">0</span> </div>
+          <div class="skills__leav">Жизней - <span id="leave">  </span> </div>
+          <div class="skills__kiilMeteor">Сбитых метеоритов - <span id="dearhMeteor">0</span> </div>
+        </div>
+
+        <div class="module">
+          <div class="module__window">
+            <div class="module__window__keyboard">Управления - Влево - "A" / Вправо - "D" / Стрельба - "Space"</div>
+            <div id="rep" class="module__window__btn-start">Начать игру</div>
+            <a target="_new" href="https://anteyku.com/" class="module__window__author">Create by Anteyku</a>
+          </div>
+        </div>
+
+
+        <div class="adaptiveEror">Игра не поддерживается на телефонных устройствах</div>
+     
+  </body>
+</html>
+
+<script src="https://unpkg.com/vue@next"></script>
+
+<script>
+
+    let canvas = document.querySelector(`#canvas`);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let ctx = canvas.getContext(`2d`);
+
+    // Обект самого корабля
+    let SpaceShip;
+
+    // Модель ракеты
+    let startShipImage = new Image();
+    startShipImage.src = `rocket.png`
+
+    // Модель астероида
+    
+    let cometImageList = [`asteroid-two.png`, `asteroid.png`, `asteroid-three.png`, `asteroid-five.png`, `asteroid-for.png`, `asteroid-six.png`]
+
+    // Модель ракеты
+    let Rocket = new Image();
+    Rocket.src = `nuclear-bomb.png`
+
+    // Модели пролитающих планет на фоне
+    let planetList = [`planetOne.png`, `planetTwo.png`, `planetThree.png`, `planetFor.png`]     
+
+
+    // Нажатые клавишы
+    let keys = [];
+
+    // Текущий уровень
+    let nowLevel = 1;
+
+
+    // Event Listeners
+    document.addEventListener(`keydown`, function(evt){
+      // Записываем в массив keys нажатую клавишу и устанавливаем ей значения true
+      keys[evt.code] = true;
+    })
+    document.addEventListener(`keyup`, function(evt){
+      // Записанной ранее клавише в массив keys устанавливаю значения false
+      keys[evt.code] = false;
+    })
+
+
+
+
+    function start(){
+
+      SpaceShip = new constructorSpaceShip(canvas.width - (canvas.width / 2), canvas.height - 70, 30, 30, `black`)
+
+      // Запускаю функцию обновления холста canvas
+      updateSpaceShip()
+    }
+
+    // start();
+
+    document.querySelector(`#rep`).addEventListener(`click`, ()=>{
+      console.log(`Запуск игры`)
+      document.querySelector(`.module`).style.display = `none`;
+
+
+            // Звук начала игры
+            var sound = new Howl({
+                src: ['start.mp3'],
+                volume: 0.1
+            });
+            sound.play();
+
+      start();
+    })
+
+    // Конструктор содержащий обекты canvas
+    function constructorSpaceShip(x,y,w,h,c){
+      this.x = x;
+      this.y = y;
+      this.w = w;
+      this.h = h;
+      this.c = c;
+      this.listComets = [
+        /*
+        {
+          x: 0,
+          y: 0,
+          imgSrc: `asteroid-two.png`,
+          visible: false,
+          speed: 1
+        }
+        */
+      ];
+      this.gameOver = false; // Сигнал об окончании игры
+      this.delayRocket = 0; // Задержка выпуска ракеты
+      this.listRockets = [] // Действующие ракеты
+      this.backgroundSwitch = true; // Переключатель пролетающей фоновой планеты 
+      this.planetModelSrc = ``; // Путь к модельке 
+      this.count = 0; // Счет игры
+      this.lvl = 0; // Текущий левел игры
+      this.leaveNumber = 4; // Количество жызней 
+      this.deathMeteor = 0; // Сбитых метеоритов
+
+      this.spaceShipDrow = function(){
+        ctx.beginPath();
+        ctx.fillStyle = this.c;
+        ctx.drawImage(startShipImage, this.x, this.y, this.w, this.h)
+        ctx.closePath();
+      }
+      this.animSpaceShip = function(){
+        
+        if(keys[`KeyA`] && this.x > 0){
+          this.x-=4;
+        } else if(keys[`KeyD`] && this.x < canvas.width - 30){ // отнимаем "30" чтобе ракета не останавливалась уже когдвыйдет за canvas а перед его окончанием
+          this.x+=4;
+        } 
+        
+      }
+      this.generationComet = function(){
+        
+        // Создаю кометы
+        if(this.listComets.length < nowLevel){
+
+          for(let i = this.listComets.length; i < nowLevel; i++){
+            let randX = Math.floor(Math.random() * canvas.width);
+            let randSpeed = Math.floor(Math.random() * 4 + 1);
+            
+            this.listComets.push({
+              x: randX,
+              y: -30,
+              imgSrc: cometImageList[Math.floor(Math.random() * cometImageList.length)],
+              visible: true,
+              speed: randSpeed,
+              finish: false        
+            })
+          }
+          
+        }
+
+        // Отрисовка каждого метеорита
+        for(let elem of this.listComets){
+          if(elem.visible){
+            ctx.beginPath();
+            ctx.fillStyle = `orange`;
+            let cometImage = new Image();
+            cometImage.src = elem.imgSrc;
+            ctx.drawImage(cometImage, elem.x, elem.y, 30,30)
+            ctx.closePath();
+          }
+        }
+        // Возвращения на исходную позицию метеорита в случае захода за canvas
+        for(let elem of this.listComets){
+          if(elem.y > canvas.height){
+          let randX = Math.floor(Math.random() * canvas.width);
+          let randSpeed = Math.floor(Math.random() * 4 + 1);
+           elem.visible = false;
+           elem.y = -30;
+           elem.x = randX;
+           elem.speed = randSpeed;
+           elem.finish = true;
+           elem.visible = true;
+          }
+        }
+
+        // Проверка на то - финишировали ли все метеориты ?
+        if(this.listComets.every((element, index,array)=>{ return element.finish == true})){
+          this.lvl++;
+          document.querySelector(`#lvl`).innerText = this.lvl;
+          nowLevel++; // Увеличиваю левел (c этим увеличиваеться количество астероидов)
+
+          // Увеличения уровня (умножения метеоритов)
+            var sound = new Howl({
+                src: ['level-up.mp3'],
+                volume: 0.1
+            });
+            sound.play();
+
+          // Унилирую финиш у всех метеоритов
+          for(let elem of this.listComets){
+            elem.finish = false;
+          }
+        }
+
+      }
+      this.drowComets = function(){
+        // Движения комет
+        for(let elem of this.listComets){
+          if(elem.visible){
+            elem.y+=elem.speed;
+          }
+        } 
+      }
+      this.starShipHit = function(){
+        // Столкновения ракеты с астероидом
+        function doCollide(x1, y1, w1, x2, y2, w2) { // w1 и w2 это радиус который будет обозначать шири обектов
+            var xd = x1 - x2;
+            var yd = y1 - y2;
+            var wt = (w2 / 2) + (w1 / 2);
+            return (xd * xd + yd * yd <= wt * wt);
+        }
+
+        for(let i = 0; i < this.listComets.length; i++){
+          if(doCollide(this.listComets[i].x, this.listComets[i].y, 30, this.x, this.y, 30)){
+            console.log(`ОБНАРУЖЕНО СТОЛКНОВЕНИЯ!`)
+            
+            // Звук столкновения метеорита с ракетой которой я управляю
+            var sound = new Howl({
+                src: ['marimba-odinochnyiy.mp3'],
+                volume: 0.1
+            });
+            sound.play();
+
+            this.leaveNumber--;
+
+            // Удаляю метеорит с которым столкнулась наша ракета
+            this.listComets.splice(i, 1);
+
+            // Если жизней осталось ноль - останавливаю игру
+            if(this.leaveNumber == 0){
+              // Звук окончания игры
+              var sound = new Howl({
+                src: ['wrecking-crew---konets-igryi-game-over-muzyika-iz-igryi-nintendo-22986.mp3'],
+                volume: 0.1
+              });
+              sound.play();
+
+              this.gameOver = true;
+            }
+            
+          }
+        }
+
+      }
+      this.drowRockets = function(){
+
+        // Увеличиваю счет игры
+        this.count++;
+        document.querySelector(`#count`).innerText = this.count;
+
+        // Отчет задержки
+        if(this.delayRocket !== 0){
+          this.delayRocket--;
+        }
+
+        // Выпуск ракеты
+        if(keys[`Space`] == true){
+          if(this.delayRocket == 0){
+            // Звук выпуска торпеды из ракеты
+            var sound = new Howl({
+                src: ['popadanie-tochno-v-tsel.mp3'],
+                volume: 0.1
+            });
+
+            sound.play();
+            this.delayRocket = 80;
+            this.listRockets.push({
+              x: this.x,
+              y: this.y - 30
+            })
+            console.log(`Запуск ракеты`)
+          }
+        }
+
+        // Рисования ракет
+        for(let elem of this.listRockets){
+          ctx.beginPath()
+          ctx.drawImage(Rocket, elem.x, elem.y, 30,30)
+          ctx.closePath()
+        }
+
+        // Движения ракет
+        for(let elem of this.listRockets){
+          elem.y--;
+        }
+
+        // Удаления ракет при выход за canvas
+        for(let i = 0; i < this.listRockets.length; i++){
+          if(this.listRockets[i].y == -30){
+            this.listRockets.splice(i, 1);
+            console.log(this.listRockets)
+          }
+        }
+
+      }
+      this.RocketHit = function (){
+
+        function doCollide(x1, y1, w1, x2, y2, w2) { // w1 и w2 это радиус который будет обозначать шири обектов
+            var xd = x1 - x2;
+            var yd = y1 - y2;
+            var wt = (w2 / 2) + (w1 / 2);
+            return (xd * xd + yd * yd <= wt * wt);
+        }        
+
+        for(let i = 0; i < this.listComets.length; i++){
+          for(let b = 0; b < this.listRockets.length; b++){
+            if(doCollide(this.listComets[i].x, this.listComets[i].y, 30, this.listRockets[b].x, this.listRockets[b].y, 30)){
+              this.deathMeteor++;
+              document.querySelector(`#dearhMeteor`).innerText = this.deathMeteor;
+
+              // Столкновения астероида с ракетой
+              var sound = new Howl({
+                src: ['vyistrel-s-popadaniem-po-myagkoy-tseli.mp3'],
+                volume: 0.1
+            });
+
+            sound.play();
+
+            
+              this.listComets.splice(i, 1);
+              this.listRockets.splice(b, 1);
+            }
+          }
+        }
+
+      }
+      this.planet = []
+      this.background = function (){
+
+        
+        // Если не установлена фоновая планета
+        if(this.backgroundSwitch){
+          let numberMeteor = Math.floor(Math.random() * planetList.length);
+          this.planetModelSrc = planetList[numberMeteor];
+
+          
+          this.planet.push({
+            x: Math.floor(Math.random() * canvas.width - 200),
+            y: -400
+          })
+
+          this.backgroundSwitch = false;
+
+        }
+      
+
+        let planetModel = new Image();
+        planetModel.src = this.planetModelSrc;
+        // Создаю движения фоновой планеты
+        this.planet[0].y+=0.5;
+
+
+        ctx.beginPath();
+        ctx.fillStyle = `black`;
+        // Отрисовка черного фона сзади
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.beginPath();
+        // Отрисовка фонового астероида
+        ctx.drawImage(planetModel,  this.planet[0].x, this.planet[0].y, 400, 400)
+        ctx.closePath();
+
+        // Проверяю - вышла ли фоновая планета за canvas
+        if(this.planet[0].y > canvas.height){
+          this.backgroundSwitch = true;
+          this.planet = []
+        }
+
+
+      }
+      // Отрисовка жизней
+      this.leave = function(){
+        document.querySelector(`#leave`).innerHTML = ``;
+        for(let i = 0; i < this.leaveNumber; i++){
+          document.querySelector(`#leave`).innerHTML += `<i class="fa-solid fa-heart"></i>`
+        }
+      }
+
+      
+    }
+
+    // Обновления canvas 60 раз в секунду
+    function updateSpaceShip(){
+      if(!SpaceShip.gameOver){
+        requestAnimationFrame(updateSpaceShip);
+
+        ctx.beginPath();
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        ctx.beginPath();
+        SpaceShip.background();
+        SpaceShip.spaceShipDrow();
+        SpaceShip.animSpaceShip();
+        SpaceShip.generationComet();
+        SpaceShip.drowComets();
+        SpaceShip.starShipHit();
+        SpaceShip.drowRockets();
+        SpaceShip.RocketHit();
+        SpaceShip.leave();
+        ctx.closePath();
+      } else {
+        document.querySelector(`.module`).style.display = `flex`;
+        return;
+      }
+    }
+
+
+/*
+
+  Vue.createApp({
+    methods: {
+
+    },
+    mounted(){
+ 
+
+
+
+      }
+    }).mount("#lol");
+    */
+
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js" integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  
+
+  
+
+
+

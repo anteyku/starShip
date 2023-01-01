@@ -1,0 +1,205 @@
+
+
+
+
+
+.title {
+  width: 950px;
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 1.5vw;
+  color: white;
+  margin: 0 auto;
+  margin-top: 6%;
+  margin-bottom: 6%;
+  padding: 0.6%;
+  background-color: rgba(0, 0, 0, 0.623);
+  a{
+    color: white;
+  }
+}
+
+
+* {
+   box-sizing: border-box;
+}
+
+body{
+ //height: 5000px;
+ box-sizing: border-box;
+
+}
+
+
+.top{
+  margin-top: 2rem;
+}
+.padding-top{
+  padding-top: 2rem;
+}
+body{
+  overflow: hidden;
+  background-color:black;
+}
+#canvas{
+  border-style: solid;
+}
+
+.skills{
+  border-color: red;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: black;
+  padding: 10px;
+  .skills__count{
+    border-color: blue;
+    display: inline-block;
+    color: white;
+    font-size: 16px;
+    span{
+      color: orange;
+      font-weight: bold;
+    }
+  }
+  .skills__lvl{
+    border-color: blue;
+    display: inline-block;
+    color: white;
+    font-size: 16px; 
+    margin-left: 16px;   
+    span{
+      color: rgb(0, 162, 255);
+      font-weight: bold;
+    }    
+  }
+  .skills__leav{
+    border-color: blue;
+    display: inline-block;
+    color: white;
+    font-size: 16px; 
+    margin-left: 16px;  
+    span{
+      i{
+        color: red;
+        margin-left: 5px;
+      }
+    }
+  }  
+  .skills__kiilMeteor{
+    border-color: blue;
+    display: inline-block;
+    color: white;
+    font-size: 16px; 
+    margin-left: 16px;  
+    span{
+      color: greenyellow;
+      font-weight: bold;      
+    }    
+  }
+}
+
+
+
+// Модальное окно
+.module{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .module__window{
+    padding: 30px;
+    border-style: solid;
+    color:#00e67736;
+    background-color: rgba(0, 0, 0, 0.623);
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 5px;
+    border-width: 2px;
+
+    .module__window__keyboard{
+      color:white;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    .module__window__btn-start{
+      text-align: center;
+      font-size: 2rem;
+      width: 50%;
+      border-style: solid;
+      border-width: 2px;
+      border-color: #00e676;
+      color:#00e676;
+      cursor: pointer;
+      padding-bottom: 5px;
+      &:hover{
+        background-color:#00e676;
+        color: white;
+      }
+    }
+    .module__window__author{
+      color: rgb(230, 230, 230);
+      font-size: 1rem;
+      font-weight: 300;
+      margin-top: 20px;
+      text-decoration: none;
+      display: block;
+      &:hover{
+        color:#00e676;
+      }
+    }
+  }
+}
+
+
+
+.adaptiveEror{
+  position: absolute;
+  top: 50vh;
+  left: 3%;
+  border-style: solid;
+  color: red;
+  font-family: sans-serif;
+  width: 90%;
+  text-align: center;
+  border-width: 2px;
+  padding: 10px;
+  font-weight: bold;
+  display: none;
+}
+
+/*
+#lol{
+  padding-top: 200px;
+  #canvas{
+    border-style: solid;
+    border-color: red;
+  }
+}
+
+*/
+// Статистика динозаврика
+
+
+@media screen and (max-width: 1091px){
+  .adaptiveEror{
+    display: block;
+  }
+  body{
+    background-color: black;
+  }
+  .module{
+   display: none; 
+  }
+  #canvas{
+    display: none;
+  }
+}
